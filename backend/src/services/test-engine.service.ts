@@ -21,8 +21,10 @@ export async function runPlaywrightTests(
 
   try {
     browser = await chromium.launch({ headless: true });
-    const page: Page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
+    const context = await browser.newContext({ ignoreHTTPSErrors: true });
+    const page: Page = await context.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await page.waitForTimeout(2_000);
 
     // ── 1. Hidden elements scan ──────────────────────────────────────────────
     if (options.hidden) {

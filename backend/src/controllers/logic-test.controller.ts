@@ -36,10 +36,13 @@ export async function runLogicTestController(
 
   try {
     browser = await chromium.launch({ headless: true });
-    const page: Page = await browser.newPage();
+    const context = await browser.newContext({ ignoreHTTPSErrors: true });
+    const page: Page = await context.newPage();
 
     // Step 1 — Load the page
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
+    // domcontentloaded: AEM Forms never reach networkidle due to long-poll XHRs
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await page.waitForTimeout(2_500);
 
     // Step 2 — Capture initial state (before any interaction)
     const initialSnapshot = await captureSnapshot(page);

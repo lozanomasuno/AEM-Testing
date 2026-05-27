@@ -11,9 +11,15 @@ export async function scanFormFields(url: string): Promise<FieldDescriptor[]> {
 
   try {
     browser = await chromium.launch({ headless: true });
-    const page: Page = await browser.newPage();
+    // ignoreHTTPSErrors: required for corporate-proxy / self-signed certs (e.g. ambientesbc.com dev)
+    const context = await browser.newContext({ ignoreHTTPSErrors: true });
+    const page: Page = await context.newPage();
 
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
+    // 'domcontentloaded' instead of 'networkidle' — AEM Forms keep long-poll
+    // requests open, so networkidle never fires.
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    // Extra wait for AEM Guide JS to finish rendering panels
+    await page.waitForTimeout(2_000);
 
     const fields = await page.evaluate((): FieldDescriptor[] => {
       const results: FieldDescriptor[] = [];
