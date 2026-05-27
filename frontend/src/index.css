@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Monospace feel for a QA console */
+body {
+  font-family: 'Courier New', Courier, monospace;
+}
