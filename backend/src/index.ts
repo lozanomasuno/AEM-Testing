@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { runTestController } from './controllers/test.controller';
+import { runLogicTestController } from './controllers/logic-test.controller';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.post('/api/run-test', runTestController);
+app.post('/api/run-logic-test', runLogicTestController); // Sprint 2
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

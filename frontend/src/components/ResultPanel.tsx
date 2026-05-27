@@ -1,7 +1,8 @@
-import { TestReport } from '../services/api.service';
+import { TestReport, LogicTestReport } from '../services/api.service';
 
 interface Props {
   report: TestReport | null;
+  logicReport: LogicTestReport | null;
   loading: boolean;
   error: string | null;
 }
@@ -13,7 +14,7 @@ function statusIcon(detail: string): string {
   return 'text-gray-600';
 }
 
-export default function ResultPanel({ report, loading, error }: Props) {
+export default function ResultPanel({ report, logicReport, loading, error }: Props) {
   if (loading) {
     return (
       <div className="border-t border-gray-200 pt-4">
@@ -38,7 +39,7 @@ export default function ResultPanel({ report, loading, error }: Props) {
     );
   }
 
-  if (!report) {
+  if (!report && !logicReport) {
     return (
       <div className="border-t border-gray-200 pt-4">
         <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
@@ -50,28 +51,52 @@ export default function ResultPanel({ report, loading, error }: Props) {
   }
 
   return (
-    <div className="border-t border-gray-200 pt-4 space-y-3">
+    <div className="border-t border-gray-200 pt-4 space-y-4">
       <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
         Results
       </p>
 
-      {/* Score bar */}
-      <div className="flex gap-6 text-sm">
-        <span className="text-green-700 font-semibold">✔ Passed: {report.passed}</span>
-        <span className="text-red-600 font-semibold">✖ Failed: {report.failed}</span>
-        <span className="text-yellow-600 font-semibold">⚠ Warnings: {report.warnings}</span>
-      </div>
+      {/* Sprint 1 report */}
+      {report && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-400 uppercase tracking-widest">Fields &amp; Validation</p>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <span className="text-green-700 font-semibold">✔ Passed: {report.passed}</span>
+            <span className="text-red-600 font-semibold">✖ Failed: {report.failed}</span>
+            <span className="text-yellow-600 font-semibold">⚠ Warnings: {report.warnings}</span>
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-52 overflow-y-auto">
+            <ul className="space-y-1">
+              {report.details.map((detail, i) => (
+                <li key={i} className={`text-xs leading-relaxed ${statusIcon(detail)}`}>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
-      {/* Details */}
-      <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-72 overflow-y-auto">
-        <ul className="space-y-1">
-          {report.details.map((detail, i) => (
-            <li key={i} className={`text-xs leading-relaxed ${statusIcon(detail)}`}>
-              {detail}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Sprint 2 logic report */}
+      {logicReport && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-400 uppercase tracking-widest">Conditional Logic</p>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <span className="text-green-700 font-semibold">✔ Passed: {logicReport.passed}</span>
+            <span className="text-red-600 font-semibold">✖ Failed: {logicReport.failed}</span>
+            <span className="text-orange-600 font-semibold">⚠ Logic errors: {logicReport.logicErrors}</span>
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-52 overflow-y-auto">
+            <ul className="space-y-1">
+              {logicReport.details.map((detail, i) => (
+                <li key={i} className={`text-xs leading-relaxed ${statusIcon(detail)}`}>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

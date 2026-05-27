@@ -31,3 +31,61 @@ export interface FieldDescriptor {
   visible: boolean;
   selector: string;    // CSS selector to locate the element
 }
+
+// ─── Sprint 2 — Conditional Logic Types ──────────────────────────────────────
+
+export interface LogicTestOptions {
+  conditional: boolean;
+}
+
+export interface LogicTestRequest {
+  url: string;
+  options: LogicTestOptions;
+}
+
+export interface LogicTestReport {
+  passed: number;
+  failed: number;
+  logicErrors: number;
+  details: string[];
+}
+
+/** Snapshot of a single DOM element (field or panel) at one point in time */
+export interface ElementSnapshot {
+  selector: string;
+  label: string;
+  visible: boolean;
+  ariaHidden: boolean;
+  htmlHidden: boolean;
+  disabled: boolean;
+  value: string;
+  type: 'field' | 'panel';
+}
+
+export type FormSnapshot = ElementSnapshot[];
+
+/** A single state-change detected between two snapshots */
+export interface StateChange {
+  selector: string;
+  label: string;
+  changeType: 'appeared' | 'disappeared' | 'enabled' | 'disabled';
+  type: 'field' | 'panel';
+}
+
+/** Result of one simulated user interaction */
+export interface InteractionResult {
+  triggerLabel: string;
+  triggerSelector: string;
+  triggerValue: string;
+  stateChanges: StateChange[];
+}
+
+/** An explicit conditional rule inferred from DOM attributes */
+export interface ConditionalRule {
+  triggerSelector: string;
+  triggerLabel: string;
+  targetSelector: string;
+  targetLabel: string;
+  expectedAction: 'show' | 'hide';
+  sourceAttribute: string;
+}

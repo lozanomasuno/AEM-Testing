@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { runTest, TestOptions, DataMode, TestReport } from '../services/api.service';
+import {
+  runTest,
+  runLogicTest,
+  TestOptions,
+  DataMode,
+  TestReport,
+  LogicTestReport,
+} from '../services/api.service';
 import TestOptionsPanel from '../components/TestOptionsPanel';
 import ResultPanel from '../components/ResultPanel';
 
@@ -7,6 +14,7 @@ const DEFAULT_OPTIONS: TestOptions = {
   regex: true,
   required: true,
   hidden: true,
+  conditional: false,
 };
 
 export default function Home() {
@@ -14,6 +22,7 @@ export default function Home() {
   const [options, setOptions] = useState<TestOptions>(DEFAULT_OPTIONS);
   const [dataMode, setDataMode] = useState<DataMode>('valid');
   const [report, setReport] = useState<TestReport | null>(null);
+  const [logicReport, setLogicReport] = useState<LogicTestReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,10 +35,18 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setReport(null);
+    setLogicReport(null);
 
     try {
+      // Sprint 1 — always run field/regex/required tests
       const result = await runTest(url.trim(), options, dataMode);
       setReport(result);
+
+      // Sprint 2 — run conditional logic test only when checkbox is on
+      if (options.conditional) {
+        const logicResult = await runLogicTest(url.trim());
+        setLogicReport(logicResult);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -46,7 +63,7 @@ export default function Home() {
           <h1 className="text-base font-bold tracking-tight text-gray-900">
             AEM Forms QA Assistant
           </h1>
-          <p className="text-xs text-gray-400 mt-0.5">Sprint 1 MVP</p>
+          <p className="text-xs text-gray-400 mt-0.5">Sprint 2</p>
         </div>
 
         {/* URL Input */}
@@ -86,7 +103,7 @@ export default function Home() {
         </button>
 
         {/* Results */}
-        <ResultPanel report={report} loading={loading} error={error} />
+        <ResultPanel report={report} logicReport={logicReport} loading={loading} error={error} />
       </div>
     </div>
   );

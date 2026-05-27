@@ -6,6 +6,7 @@ export interface TestOptions {
   regex: boolean;
   required: boolean;
   hidden: boolean;
+  conditional: boolean; // Sprint 2
 }
 
 export interface TestReport {
@@ -14,6 +15,17 @@ export interface TestReport {
   warnings: number;
   details: string[];
 }
+
+// Sprint 2 ─────────────────────────────────────────────────────────────────
+
+export interface LogicTestReport {
+  passed: number;
+  failed: number;
+  logicErrors: number;
+  details: string[];
+}
+
+// ─── Sprint 1: POST /api/run-test ─────────────────────────────────────────
 
 export async function runTest(
   url: string,
@@ -34,4 +46,23 @@ export async function runTest(
   }
 
   return response.json() as Promise<TestReport>;
+}
+
+// ─── Sprint 2: POST /api/run-logic-test ──────────────────────────────────
+
+export async function runLogicTest(url: string): Promise<LogicTestReport> {
+  const response = await fetch(`${BASE_URL}/api/run-logic-test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, options: { conditional: true } }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(
+      (errorBody as { error?: string }).error ?? `HTTP ${response.status}`
+    );
+  }
+
+  return response.json() as Promise<LogicTestReport>;
 }

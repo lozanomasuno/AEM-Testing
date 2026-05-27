@@ -36,6 +36,7 @@ export default function TestOptionsPanel({
               { key: 'regex', label: 'Regex validation' },
               { key: 'required', label: 'Required fields' },
               { key: 'hidden', label: 'Hidden elements scan' },
+              { key: 'conditional', label: 'Conditional logic test' }, // Sprint 2
             ] as { key: keyof TestOptions; label: string }[]
           ).map(({ key, label }) => (
             <label key={key} className="flex items-center gap-2 cursor-pointer">
