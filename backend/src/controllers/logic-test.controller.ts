@@ -5,6 +5,7 @@ import { captureSnapshot } from '../services/state-tracker.service';
 import { detectConditionalRules } from '../services/conditional-rule-detector.service';
 import { simulateInteractions } from '../services/interaction-simulator.service';
 import { validateConditionalBehavior } from '../services/conditional-validator.service';
+import { buildLogicReport } from '../services/report.service';
 
 /**
  * POST /api/run-logic-test
@@ -54,13 +55,14 @@ export async function runLogicTestController(
     const interactions = await simulateInteractions(page, initialSnapshot);
 
     // Step 5 — Validate rules + observations → produce report
-    const report: LogicTestReport = validateConditionalBehavior(
+    const rawReport: LogicTestReport = validateConditionalBehavior(
       rules,
       interactions,
       initialSnapshot
     );
 
-    res.json(report);
+    // Step 6 — Apply Human Readable Interpretation Layer
+    res.json(buildLogicReport(rawReport));
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     res.status(500).json({

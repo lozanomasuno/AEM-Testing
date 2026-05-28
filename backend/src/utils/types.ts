@@ -89,3 +89,60 @@ export interface ConditionalRule {
   expectedAction: 'show' | 'hide';
   sourceAttribute: string;
 }
+
+// ─── Sprint 3 — AI Test Generation + Coverage Intelligence ───────────────────
+
+export interface AITestOptions {
+  aiGeneration: boolean;
+  coverage: boolean;
+}
+
+export interface GenerateTestsRequest {
+  url: string;
+  options: AITestOptions;
+}
+
+/** Inferred semantic metadata for a field, built by the Schema Inferencer */
+export interface InferredField extends FieldDescriptor {
+  category: 'email' | 'phone' | 'name' | 'age' | 'date' | 'numeric' | 'text' | 'url' | 'checkbox' | 'select';
+  minLength?: number;
+  maxLength?: number;
+  minValue?: number;
+  maxValue?: number;
+  boundaryValues: string[];
+  relatedFields: string[];   // ids / names of logically related sibling fields
+}
+
+export type ScenarioType = 'happy' | 'negative' | 'edge' | 'conditional';
+
+/** A single generated test case targeting one field */
+export interface GeneratedTestCase {
+  id: string;
+  fieldId: string;
+  fieldName: string;
+  fieldSelector: string;
+  scenario: ScenarioType;
+  input: string;
+  expectedOutcome: 'valid' | 'invalid';
+  description: string;
+}
+
+/** Coverage statistics produced by the Coverage Engine */
+export interface CoverageStats {
+  coverage: number;          // 0-100 %
+  fieldsCovered: number;
+  totalFields: number;
+  rulesCovered: number;
+  totalRules: number;
+  missingScenarios: number;
+}
+
+/** Final response from POST /api/generate-tests */
+export interface AITestReport {
+  testsGenerated: number;
+  coverage: number;
+  edgeCases: number;
+  details: string[];
+  tests: GeneratedTestCase[];
+  coverageStats: CoverageStats;
+}

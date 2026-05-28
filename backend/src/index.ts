@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { runTestController } from './controllers/test.controller';
 import { runLogicTestController } from './controllers/logic-test.controller';
+import { generateTestsController } from './controllers/generate-tests.controller';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -13,6 +14,7 @@ app.use(express.json());
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.post('/api/run-test', runTestController);
 app.post('/api/run-logic-test', runLogicTestController); // Sprint 2
+app.post('/api/generate-tests', generateTestsController); // Sprint 3
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -22,10 +24,11 @@ app.get('/api/health', (_req, res) => {
 app.get('/', (_req, res) => {
   res.json({
     name: 'AEM Forms QA Assistant — Backend',
-    version: '2.0.0',
+    version: '3.0.0',
     endpoints: [
       'POST /api/run-test',
       'POST /api/run-logic-test',
+      'POST /api/generate-tests',
       'GET  /api/health',
     ],
   });
