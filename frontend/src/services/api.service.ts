@@ -135,10 +135,12 @@ export interface FormField {
   placeholder: string;
   required: boolean;
   pattern: string | null;
+  maxlength: number | null;
   visible: boolean;
   readonly: boolean;
   disabled: boolean;
   errors: string[];
+  warnings: string[];
   selector: string;
 }
 

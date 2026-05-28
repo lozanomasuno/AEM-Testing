@@ -81,11 +81,9 @@ export default function Home() {
         });
         setAiReport(aiResult);
       }
-      // Sprint 4 — Form Structure analysis
-      if (options.formStructure) {
-        const structureResult = await getFormStructure(url.trim());
-        setStructureReport(structureResult);
-      }
+      // Sprint 4 — Form Structure always runs (core feature)
+      const structureResult = await getFormStructure(url.trim());
+      setStructureReport(structureResult);
       setModalOpen(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -157,7 +155,7 @@ export default function Home() {
         )}
 
         {/* View results link (when modal is closed but results exist) */}
-        {!modalOpen && (report || logicReport || aiReport) && !error && (
+        {!modalOpen && (report || logicReport || aiReport || structureReport) && !error && (
           <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
             <p className="text-xs text-gray-400">Last run complete</p>
             <button

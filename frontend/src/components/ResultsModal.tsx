@@ -14,7 +14,7 @@ interface Props {
   onRunAgain: () => void;
 }
 
-type TabId = 'fields' | 'logic' | 'ai' | 'structure';
+type TabId = 'structure' | 'logic' | 'ai';
 
 interface Partitioned {
   passed: string[];
@@ -141,17 +141,16 @@ export default function ResultsModal({
   onClose,
   onRunAgain,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<TabId>('fields');
+  const [activeTab, setActiveTab] = useState<TabId>('structure');
 
   // Reset to first available tab each time the modal opens
   useEffect(() => {
     if (open) {
-      if (report) setActiveTab('fields');
+      if (structureReport) setActiveTab('structure');
       else if (logicReport) setActiveTab('logic');
       else if (aiReport) setActiveTab('ai');
-      else if (structureReport) setActiveTab('structure');
     }
-  }, [open, report, logicReport, aiReport, structureReport]);
+  }, [open, structureReport, logicReport, aiReport]);
 
   // Close on Escape key
   useEffect(() => {
@@ -166,10 +165,9 @@ export default function ResultsModal({
   if (!open) return null;
 
   const tabs: { id: TabId; label: string; available: boolean }[] = [
-    { id: 'fields',    label: 'Fields & Validation', available: !!report },
-    { id: 'logic',     label: 'Conditional Logic',   available: !!logicReport },
-    { id: 'ai',        label: 'AI Coverage',          available: !!aiReport },
-    { id: 'structure', label: 'Form Structure',       available: !!structureReport },
+    { id: 'structure', label: 'Form Structure',     available: !!structureReport },
+    { id: 'logic',     label: 'Conditional Logic',  available: !!logicReport },
+    { id: 'ai',        label: 'AI Coverage',         available: !!aiReport },
   ];
 
   const visibleTabs = tabs.filter((t) => t.available);
@@ -223,18 +221,9 @@ export default function ResultsModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
 
-          {/* TAB 1 — Fields & Validation */}
-          {activeTab === 'fields' && report && (
-            <>
-              {/* Summary counts */}
-              <div className="flex flex-wrap gap-4 text-sm pb-1 border-b border-gray-100">
-                <span className="text-green-700 font-semibold">✔ Passed: {report.passed}</span>
-                <span className="text-red-600 font-semibold">✖ Failed: {report.failed}</span>
-                <span className="text-yellow-700 font-semibold">⚠ Warnings: {report.warnings}</span>
-              </div>
-              {/* Grouped detail items */}
-              <ResultGroups details={report.details} />
-            </>
+          {/* TAB 1 — Form Structure (core) */}
+          {activeTab === 'structure' && structureReport && (
+            <FormStructureTab structure={structureReport} />
           )}
 
           {/* TAB 2 — Conditional Logic */}
@@ -282,10 +271,6 @@ export default function ResultsModal({
             </>
           )}
 
-          {/* TAB 4 — Form Structure */}
-          {activeTab === 'structure' && structureReport && (
-            <FormStructureTab structure={structureReport} />
-          )}
         </div>
 
         {/* Footer */}

@@ -77,22 +77,6 @@ export default function TestOptionsPanel({
         </div>
       </div>
 
-      {/* Sprint 4 — Form Structure */}
-      <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
-          Form Analysis  <span className="normal-case font-normal text-gray-400">(Sprint 4)</span>
-        </p>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={options.formStructure}
-            onChange={() => toggle('formStructure')}
-            className="accent-teal-600"
-          />
-          <span className="text-sm text-gray-700">Form Structure</span>
-        </label>
-      </div>
-
       {/* Data mode radio */}
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">

@@ -46,12 +46,35 @@ function FieldCard({ field }: { field: FormField }) {
         </div>
       )}
 
+      {/* Max length */}
+      {field.maxlength !== null && (
+        <p className="text-xs text-gray-500">
+          <span className="uppercase tracking-widest text-gray-400">Max length</span>{' '}
+          <span className="font-mono font-semibold text-gray-700">{field.maxlength}</span>
+        </p>
+      )}
+
       {/* Placeholder (if different from label) */}
       {field.placeholder && field.placeholder !== field.label && (
         <p className="text-xs text-gray-400">
           <span className="uppercase tracking-widest">Placeholder</span>{' '}
           <span className="text-gray-600">{field.placeholder}</span>
         </p>
+      )}
+
+      {/* QA Warnings */}
+      {field.warnings && field.warnings.length > 0 && (
+        <div className="border-t border-yellow-100 pt-2 space-y-1">
+          <p className="text-xs uppercase tracking-widest text-yellow-600">Warnings</p>
+          <ul className="space-y-0.5">
+            {field.warnings.map((w, i) => (
+              <li key={i} className="text-xs text-yellow-700 flex items-start gap-1.5">
+                <span className="mt-0.5 shrink-0">⚠</span>
+                <span>{w}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* Error messages */}
