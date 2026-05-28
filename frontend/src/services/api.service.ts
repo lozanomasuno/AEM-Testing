@@ -9,6 +9,7 @@ export interface TestOptions {
   conditional: boolean; // Sprint 2
   aiGeneration: boolean; // Sprint 3
   coverage: boolean;     // Sprint 3
+  formStructure: boolean; // Sprint 4
 }
 
 export interface TestReport {
@@ -120,5 +121,52 @@ export async function generateTests(
   }
 
   return response.json() as Promise<AITestReport>;
+}
+
+// ─── Sprint 4: POST /api/form-structure ──────────────────────────────────────
+
+export type PanelType = 'fieldset' | 'section' | 'accordion' | 'tab' | 'group' | 'unknown';
+
+export interface FormField {
+  label: string;
+  type: string;
+  id: string;
+  name: string;
+  placeholder: string;
+  required: boolean;
+  pattern: string | null;
+  visible: boolean;
+  readonly: boolean;
+  disabled: boolean;
+  errors: string[];
+  selector: string;
+}
+
+export interface FormPanel {
+  name: string;
+  type: PanelType;
+  fields: FormField[];
+}
+
+export interface FormStructure {
+  panels: FormPanel[];
+  orphanFields: FormField[];
+}
+
+export async function getFormStructure(url: string): Promise<FormStructure> {
+  const response = await fetch(`${BASE_URL}/api/form-structure`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(
+      (errorBody as { error?: string }).error ?? `HTTP ${response.status}`
+    );
+  }
+
+  return response.json() as Promise<FormStructure>;
 }
 

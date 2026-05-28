@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { TestReport, LogicTestReport, AITestReport } from '../services/api.service';
+import { TestReport, LogicTestReport, AITestReport, FormStructure } from '../services/api.service';
+import FormStructureTab from './FormStructureTab';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,11 +9,12 @@ interface Props {
   report: TestReport | null;
   logicReport: LogicTestReport | null;
   aiReport: AITestReport | null;
+  structureReport: FormStructure | null;
   onClose: () => void;
   onRunAgain: () => void;
 }
 
-type TabId = 'fields' | 'logic' | 'ai';
+type TabId = 'fields' | 'logic' | 'ai' | 'structure';
 
 interface Partitioned {
   passed: string[];
@@ -135,6 +137,7 @@ export default function ResultsModal({
   report,
   logicReport,
   aiReport,
+  structureReport,
   onClose,
   onRunAgain,
 }: Props) {
@@ -146,8 +149,9 @@ export default function ResultsModal({
       if (report) setActiveTab('fields');
       else if (logicReport) setActiveTab('logic');
       else if (aiReport) setActiveTab('ai');
+      else if (structureReport) setActiveTab('structure');
     }
-  }, [open, report, logicReport, aiReport]);
+  }, [open, report, logicReport, aiReport, structureReport]);
 
   // Close on Escape key
   useEffect(() => {
@@ -162,9 +166,10 @@ export default function ResultsModal({
   if (!open) return null;
 
   const tabs: { id: TabId; label: string; available: boolean }[] = [
-    { id: 'fields', label: 'Fields & Validation', available: !!report },
-    { id: 'logic',  label: 'Conditional Logic',   available: !!logicReport },
-    { id: 'ai',     label: 'AI Coverage',          available: !!aiReport },
+    { id: 'fields',    label: 'Fields & Validation', available: !!report },
+    { id: 'logic',     label: 'Conditional Logic',   available: !!logicReport },
+    { id: 'ai',        label: 'AI Coverage',          available: !!aiReport },
+    { id: 'structure', label: 'Form Structure',       available: !!structureReport },
   ];
 
   const visibleTabs = tabs.filter((t) => t.available);
@@ -275,6 +280,11 @@ export default function ResultsModal({
               {/* Grouped detail items */}
               <ResultGroups details={aiReport.details} />
             </>
+          )}
+
+          {/* TAB 4 — Form Structure */}
+          {activeTab === 'structure' && structureReport && (
+            <FormStructureTab structure={structureReport} />
           )}
         </div>
 

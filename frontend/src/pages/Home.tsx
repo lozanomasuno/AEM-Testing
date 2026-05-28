@@ -3,11 +3,13 @@ import {
   runTest,
   runLogicTest,
   generateTests,
+  getFormStructure,
   TestOptions,
   DataMode,
   TestReport,
   LogicTestReport,
   AITestReport,
+  FormStructure,
 } from '../services/api.service';
 import TestOptionsPanel from '../components/TestOptionsPanel';
 import ResultsModal from '../components/ResultsModal';
@@ -19,6 +21,7 @@ const DEFAULT_OPTIONS: TestOptions = {
   conditional: false,
   aiGeneration: false,
   coverage: false,
+  formStructure: false,
 };
 
 export default function Home() {
@@ -28,6 +31,7 @@ export default function Home() {
   const [report, setReport] = useState<TestReport | null>(null);
   const [logicReport, setLogicReport] = useState<LogicTestReport | null>(null);
   const [aiReport, setAiReport] = useState<AITestReport | null>(null);
+  const [structureReport, setStructureReport] = useState<FormStructure | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -39,6 +43,7 @@ export default function Home() {
     setReport(null);
     setLogicReport(null);
     setAiReport(null);
+    setStructureReport(null);
     setLoading(false);
     setError(null);
     setModalOpen(false);
@@ -55,9 +60,7 @@ export default function Home() {
     setReport(null);
     setLogicReport(null);
     setAiReport(null);
-
-    try {
-      // Sprint 1 — always run field/regex/required tests
+      setStructureReport(null);
       const result = await runTest(url.trim(), options, dataMode);
       setReport(result);
 
@@ -74,6 +77,11 @@ export default function Home() {
           coverage: options.coverage,
         });
         setAiReport(aiResult);
+      }
+      // Sprint 4 — Form Structure analysis
+      if (options.formStructure) {
+        const structureResult = await getFormStructure(url.trim());
+        setStructureReport(structureResult);
       }
       setModalOpen(true);
     } catch (err: unknown) {
@@ -165,6 +173,7 @@ export default function Home() {
         report={report}
         logicReport={logicReport}
         aiReport={aiReport}
+        structureReport={structureReport}
         onClose={() => setModalOpen(false)}
         onRunAgain={handleReset}
       />
