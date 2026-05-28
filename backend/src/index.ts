@@ -3,6 +3,7 @@ import cors from 'cors';
 import { runTestController } from './controllers/test.controller';
 import { runLogicTestController } from './controllers/logic-test.controller';
 import { generateTestsController } from './controllers/generate-tests.controller';
+import { formStructureController } from './controllers/form-structure.controller';
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.post('/api/run-test', runTestController);
 app.post('/api/run-logic-test', runLogicTestController); // Sprint 2
 app.post('/api/generate-tests', generateTestsController); // Sprint 3
+app.post('/api/form-structure', formStructureController);  // Sprint 4
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -29,6 +31,7 @@ app.get('/', (_req, res) => {
       'POST /api/run-test',
       'POST /api/run-logic-test',
       'POST /api/generate-tests',
+      'POST /api/form-structure',
       'GET  /api/health',
     ],
   });

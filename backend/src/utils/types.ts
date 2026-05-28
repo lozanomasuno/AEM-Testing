@@ -146,3 +146,36 @@ export interface AITestReport {
   tests: GeneratedTestCase[];
   coverageStats: CoverageStats;
 }
+
+// ─── Sprint 4 — Form Structure Analyzer ──────────────────────────────────────
+
+export type PanelType = 'fieldset' | 'section' | 'accordion' | 'tab' | 'group' | 'unknown';
+
+/** A single form field with its full semantic metadata */
+export interface FormField {
+  label: string;
+  type: string;
+  id: string;
+  name: string;
+  placeholder: string;
+  required: boolean;
+  pattern: string | null;
+  visible: boolean;
+  readonly: boolean;
+  disabled: boolean;
+  errors: string[];      // English-only error/validation messages
+  selector: string;
+}
+
+/** A semantic panel / section that groups form fields */
+export interface FormPanel {
+  name: string;
+  type: PanelType;
+  fields: FormField[];
+}
+
+/** Full semantic structure of the analysed form */
+export interface FormStructure {
+  panels: FormPanel[];
+  orphanFields: FormField[];   // fields not inside any detected panel
+}
