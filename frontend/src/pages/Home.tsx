@@ -2,19 +2,23 @@ import { useState } from 'react';
 import {
   runTest,
   runLogicTest,
+  generateTests,
   TestOptions,
   DataMode,
   TestReport,
   LogicTestReport,
+  AITestReport,
 } from '../services/api.service';
 import TestOptionsPanel from '../components/TestOptionsPanel';
-import ResultPanel from '../components/ResultPanel';
+import ResultsModal from '../components/ResultsModal';
 
 const DEFAULT_OPTIONS: TestOptions = {
   regex: true,
   required: true,
   hidden: true,
   conditional: false,
+  aiGeneration: false,
+  coverage: false,
 };
 
 export default function Home() {
@@ -23,8 +27,22 @@ export default function Home() {
   const [dataMode, setDataMode] = useState<DataMode>('valid');
   const [report, setReport] = useState<TestReport | null>(null);
   const [logicReport, setLogicReport] = useState<LogicTestReport | null>(null);
+  const [aiReport, setAiReport] = useState<AITestReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  function handleReset() {
+    setUrl('');
+    setOptions(DEFAULT_OPTIONS);
+    setDataMode('valid');
+    setReport(null);
+    setLogicReport(null);
+    setAiReport(null);
+    setLoading(false);
+    setError(null);
+    setModalOpen(false);
+  }
 
   async function handleRun() {
     if (!url.trim()) {
@@ -36,6 +54,7 @@ export default function Home() {
     setError(null);
     setReport(null);
     setLogicReport(null);
+    setAiReport(null);
 
     try {
       // Sprint 1 — always run field/regex/required tests
@@ -47,6 +66,16 @@ export default function Home() {
         const logicResult = await runLogicTest(url.trim());
         setLogicReport(logicResult);
       }
+
+      // Sprint 3 — run AI test generation when checkbox is on
+      if (options.aiGeneration) {
+        const aiResult = await generateTests(url.trim(), {
+          aiGeneration: true,
+          coverage: options.coverage,
+        });
+        setAiReport(aiResult);
+      }
+      setModalOpen(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -63,7 +92,7 @@ export default function Home() {
           <h1 className="text-base font-bold tracking-tight text-gray-900">
             AEM Forms QA Assistant
           </h1>
-          <p className="text-xs text-gray-400 mt-0.5">Sprint 2</p>
+          <p className="text-xs text-gray-400 mt-0.5">Sprint 3</p>
         </div>
 
         {/* URL Input */}
@@ -102,9 +131,43 @@ export default function Home() {
           {loading ? 'Running…' : 'RUN TEST'}
         </button>
 
-        {/* Results */}
-        <ResultPanel report={report} logicReport={logicReport} loading={loading} error={error} />
+        {/* Loading indicator */}
+        {loading && (
+          <div className="border-t border-gray-200 pt-4">
+            <p className="text-sm text-gray-500 animate-pulse">Running tests… this may take up to 30s</p>
+          </div>
+        )}
+
+        {/* Error inline */}
+        {!loading && error && (
+          <div className="border-t border-gray-200 pt-4">
+            <p className="text-sm text-red-600">✖ {error}</p>
+          </div>
+        )}
+
+        {/* View results link (when modal is closed but results exist) */}
+        {!modalOpen && (report || logicReport || aiReport) && !error && (
+          <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
+            <p className="text-xs text-gray-400">Last run complete</p>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="text-xs font-semibold text-gray-600 hover:text-gray-900 underline underline-offset-2 transition-colors"
+            >
+              View results ↗
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Results modal */}
+      <ResultsModal
+        open={modalOpen}
+        report={report}
+        logicReport={logicReport}
+        aiReport={aiReport}
+        onClose={() => setModalOpen(false)}
+        onRunAgain={handleReset}
+      />
     </div>
   );
 }
