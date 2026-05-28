@@ -1,8 +1,9 @@
-import { TestReport, LogicTestReport } from '../services/api.service';
+import { TestReport, LogicTestReport, AITestReport } from '../services/api.service';
 
 interface Props {
   report: TestReport | null;
   logicReport: LogicTestReport | null;
+  aiReport: AITestReport | null;
   loading: boolean;
   error: string | null;
 }
@@ -14,7 +15,7 @@ function statusIcon(detail: string): string {
   return 'text-gray-600';
 }
 
-export default function ResultPanel({ report, logicReport, loading, error }: Props) {
+export default function ResultPanel({ report, logicReport, aiReport, loading, error }: Props) {
   if (loading) {
     return (
       <div className="border-t border-gray-200 pt-4">
@@ -39,7 +40,7 @@ export default function ResultPanel({ report, logicReport, loading, error }: Pro
     );
   }
 
-  if (!report && !logicReport) {
+  if (!report && !logicReport && !aiReport) {
     return (
       <div className="border-t border-gray-200 pt-4">
         <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
@@ -89,6 +90,46 @@ export default function ResultPanel({ report, logicReport, loading, error }: Pro
           <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-52 overflow-y-auto">
             <ul className="space-y-1">
               {logicReport.details.map((detail, i) => (
+                <li key={i} className={`text-xs leading-relaxed ${statusIcon(detail)}`}>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Sprint 3 AI report */}
+      {aiReport && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-400 uppercase tracking-widest">AI Results</p>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <span className="text-indigo-700 font-semibold">✔ Tests generated: {aiReport.testsGenerated}</span>
+            <span className="text-indigo-700 font-semibold">✔ Coverage: {aiReport.coverage}%</span>
+            <span className="text-orange-600 font-semibold">⚠ Edge cases: {aiReport.edgeCases}</span>
+          </div>
+
+          {/* Coverage detail bar */}
+          <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div
+              className="bg-indigo-500 h-1.5 rounded-full transition-all"
+              style={{ width: `${aiReport.coverage}%` }}
+            />
+          </div>
+
+          {aiReport.coverageStats.totalFields > 0 && (
+            <p className="text-xs text-gray-500">
+              Fields: {aiReport.coverageStats.fieldsCovered}/{aiReport.coverageStats.totalFields}
+              {aiReport.coverageStats.totalRules > 0 &&
+                ` · Rules: ${aiReport.coverageStats.rulesCovered}/${aiReport.coverageStats.totalRules}`}
+              {aiReport.coverageStats.missingScenarios > 0 &&
+                ` · Missing: ${aiReport.coverageStats.missingScenarios} scenario(s)`}
+            </p>
+          )}
+
+          <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-52 overflow-y-auto">
+            <ul className="space-y-1">
+              {aiReport.details.map((detail, i) => (
                 <li key={i} className={`text-xs leading-relaxed ${statusIcon(detail)}`}>
                   {detail}
                 </li>

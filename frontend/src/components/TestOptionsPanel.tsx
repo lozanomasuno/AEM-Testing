@@ -52,6 +52,31 @@ export default function TestOptionsPanel({
         </div>
       </div>
 
+      {/* Sprint 3 — AI options */}
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
+          AI Generation  <span className="normal-case font-normal text-gray-400">(Sprint 3)</span>
+        </p>
+        <div className="space-y-1">
+          {(
+            [
+              { key: 'aiGeneration', label: 'AI Test Generation' },
+              { key: 'coverage',     label: 'Coverage Analysis' },
+            ] as { key: keyof TestOptions; label: string }[]
+          ).map(({ key, label }) => (
+            <label key={key} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={options[key]}
+                onChange={() => toggle(key)}
+                className="accent-indigo-600"
+              />
+              <span className="text-sm text-gray-700">{label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {/* Data mode radio */}
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
