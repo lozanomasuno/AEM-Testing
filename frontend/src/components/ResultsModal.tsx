@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TestReport, LogicTestReport, AITestReport } from '../services/api.service';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface Props {
   open: boolean;
   report: TestReport | null;
@@ -12,12 +14,121 @@ interface Props {
 
 type TabId = 'fields' | 'logic' | 'ai';
 
-function statusClass(detail: string): string {
-  if (detail.startsWith('✔') || detail.startsWith('Summary')) return 'text-green-700';
-  if (detail.startsWith('✖')) return 'text-red-600';
-  if (detail.startsWith('⚠')) return 'text-yellow-600';
-  return 'text-gray-600';
+interface Partitioned {
+  passed: string[];
+  failed: string[];
+  warnings: string[];
+  other: string[];
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function partitionDetails(details: string[]): Partitioned {
+  return {
+    passed:   details.filter(d => d.startsWith('✔') || d.startsWith('Summary')),
+    failed:   details.filter(d => d.startsWith('✖')),
+    warnings: details.filter(d => d.startsWith('⚠')),
+    other:    details.filter(d =>
+      !d.startsWith('✔') && !d.startsWith('✖') &&
+      !d.startsWith('⚠') && !d.startsWith('Summary')
+    ),
+  };
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+interface SectionProps {
+  icon: string;
+  label: string;
+  count: number;
+  items: string[];
+  headerColor: string;
+  borderColor: string;
+  bgColor: string;
+  textColor: string;
+  badgeBg: string;
+}
+
+function ResultSection({
+  icon, label, count, items,
+  headerColor, borderColor, bgColor, textColor, badgeBg,
+}: SectionProps) {
+  return (
+    <div className={`rounded border ${borderColor} overflow-hidden`}>
+      {/* Section header */}
+      <div className={`flex items-center gap-2 px-3 py-2 ${bgColor}`}>
+        <span className={`text-xs font-bold uppercase tracking-widest ${headerColor}`}>
+          {icon} {label}
+        </span>
+        <span className={`text-xs font-bold leading-none px-1.5 py-0.5 rounded-full ${badgeBg} ${headerColor}`}>
+          {count}
+        </span>
+      </div>
+      {/* Items */}
+      <ul className="px-3 py-2 space-y-1">
+        {items.map((item, i) => (
+          <li key={i} className={`text-xs leading-relaxed ${textColor}`}>
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+interface GroupsProps {
+  details: string[];
+}
+
+function ResultGroups({ details }: GroupsProps) {
+  const { passed, failed, warnings, other } = partitionDetails(details);
+
+  return (
+    <div className="space-y-2">
+      {passed.length > 0 && (
+        <ResultSection
+          icon="✔" label="Passed" count={passed.length} items={passed}
+          headerColor="text-green-700"
+          borderColor="border-green-200"
+          bgColor="bg-green-50"
+          textColor="text-green-800"
+          badgeBg="bg-white/70"
+        />
+      )}
+      {failed.length > 0 && (
+        <ResultSection
+          icon="✖" label="Failed" count={failed.length} items={failed}
+          headerColor="text-red-600"
+          borderColor="border-red-200"
+          bgColor="bg-red-50"
+          textColor="text-red-700"
+          badgeBg="bg-white/70"
+        />
+      )}
+      {warnings.length > 0 && (
+        <ResultSection
+          icon="⚠" label="Warnings" count={warnings.length} items={warnings}
+          headerColor="text-yellow-700"
+          borderColor="border-yellow-200"
+          bgColor="bg-yellow-50"
+          textColor="text-yellow-800"
+          badgeBg="bg-white/70"
+        />
+      )}
+      {other.length > 0 && (
+        <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+          <ul className="space-y-1">
+            {other.map((d, i) => (
+              <li key={i} className="text-xs leading-relaxed text-gray-500">{d}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function ResultsModal({
   open,
@@ -85,7 +196,7 @@ export default function ResultsModal({
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tab bar */}
         {visibleTabs.length > 1 && (
           <div className="flex border-b border-gray-200 px-5 shrink-0">
             {visibleTabs.map((tab) => (
@@ -110,69 +221,59 @@ export default function ResultsModal({
           {/* TAB 1 — Fields & Validation */}
           {activeTab === 'fields' && report && (
             <>
-              <div className="flex flex-wrap gap-4 text-sm">
+              {/* Summary counts */}
+              <div className="flex flex-wrap gap-4 text-sm pb-1 border-b border-gray-100">
                 <span className="text-green-700 font-semibold">✔ Passed: {report.passed}</span>
                 <span className="text-red-600 font-semibold">✖ Failed: {report.failed}</span>
-                <span className="text-yellow-600 font-semibold">⚠ Warnings: {report.warnings}</span>
+                <span className="text-yellow-700 font-semibold">⚠ Warnings: {report.warnings}</span>
               </div>
-              <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-72 overflow-y-auto">
-                <ul className="space-y-1">
-                  {report.details.map((d, i) => (
-                    <li key={i} className={`text-xs leading-relaxed ${statusClass(d)}`}>{d}</li>
-                  ))}
-                </ul>
-              </div>
+              {/* Grouped detail items */}
+              <ResultGroups details={report.details} />
             </>
           )}
 
           {/* TAB 2 — Conditional Logic */}
           {activeTab === 'logic' && logicReport && (
             <>
-              <div className="flex flex-wrap gap-4 text-sm">
+              {/* Summary counts */}
+              <div className="flex flex-wrap gap-4 text-sm pb-1 border-b border-gray-100">
                 <span className="text-green-700 font-semibold">✔ Passed: {logicReport.passed}</span>
                 <span className="text-red-600 font-semibold">✖ Failed: {logicReport.failed}</span>
                 <span className="text-orange-600 font-semibold">⚠ Logic errors: {logicReport.logicErrors}</span>
               </div>
-              <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-72 overflow-y-auto">
-                <ul className="space-y-1">
-                  {logicReport.details.map((d, i) => (
-                    <li key={i} className={`text-xs leading-relaxed ${statusClass(d)}`}>{d}</li>
-                  ))}
-                </ul>
-              </div>
+              {/* Grouped detail items */}
+              <ResultGroups details={logicReport.details} />
             </>
           )}
 
           {/* TAB 3 — AI Coverage */}
           {activeTab === 'ai' && aiReport && (
             <>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <span className="text-indigo-700 font-semibold">✔ Tests generated: {aiReport.testsGenerated}</span>
-                <span className="text-indigo-700 font-semibold">✔ Coverage: {aiReport.coverage}%</span>
-                <span className="text-orange-600 font-semibold">⚠ Edge cases: {aiReport.edgeCases}</span>
+              {/* AI summary + coverage bar */}
+              <div className="space-y-2 pb-1 border-b border-gray-100">
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <span className="text-indigo-700 font-semibold">✔ Tests generated: {aiReport.testsGenerated}</span>
+                  <span className="text-indigo-700 font-semibold">✔ Coverage: {aiReport.coverage}%</span>
+                  <span className="text-orange-600 font-semibold">⚠ Edge cases: {aiReport.edgeCases}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div
+                    className="bg-indigo-500 h-1.5 rounded-full transition-all"
+                    style={{ width: `${aiReport.coverage}%` }}
+                  />
+                </div>
+                {aiReport.coverageStats.totalFields > 0 && (
+                  <p className="text-xs text-gray-500">
+                    Fields: {aiReport.coverageStats.fieldsCovered}/{aiReport.coverageStats.totalFields}
+                    {aiReport.coverageStats.totalRules > 0 &&
+                      ` · Rules: ${aiReport.coverageStats.rulesCovered}/${aiReport.coverageStats.totalRules}`}
+                    {aiReport.coverageStats.missingScenarios > 0 &&
+                      ` · Missing: ${aiReport.coverageStats.missingScenarios} scenario(s)`}
+                  </p>
+                )}
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div
-                  className="bg-indigo-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${aiReport.coverage}%` }}
-                />
-              </div>
-              {aiReport.coverageStats.totalFields > 0 && (
-                <p className="text-xs text-gray-500">
-                  Fields: {aiReport.coverageStats.fieldsCovered}/{aiReport.coverageStats.totalFields}
-                  {aiReport.coverageStats.totalRules > 0 &&
-                    ` · Rules: ${aiReport.coverageStats.rulesCovered}/${aiReport.coverageStats.totalRules}`}
-                  {aiReport.coverageStats.missingScenarios > 0 &&
-                    ` · Missing: ${aiReport.coverageStats.missingScenarios} scenario(s)`}
-                </p>
-              )}
-              <div className="bg-gray-50 border border-gray-200 rounded p-3 max-h-64 overflow-y-auto">
-                <ul className="space-y-1">
-                  {aiReport.details.map((d, i) => (
-                    <li key={i} className={`text-xs leading-relaxed ${statusClass(d)}`}>{d}</li>
-                  ))}
-                </ul>
-              </div>
+              {/* Grouped detail items */}
+              <ResultGroups details={aiReport.details} />
             </>
           )}
         </div>
