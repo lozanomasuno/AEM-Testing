@@ -104,6 +104,17 @@ export async function analyzeFormStructure(url: string): Promise<FormStructure> 
         if (el.id) sel = `#${el.id}`;
         else if (inp.name) sel = `${el.tagName.toLowerCase()}[name="${inp.name}"]`;
 
+        // maxlength — meaningful for text/textarea; -1 = not set
+        const ml = inp.maxLength ?? -1;
+        const maxlength = (type === 'text' || type === 'textarea') && ml > 0 ? ml : null;
+
+        // QA warnings: text/textarea without regex or maxlength = quality gap
+        const warnings: string[] = [];
+        if (type === 'text' || type === 'textarea') {
+          if (!inp.pattern) warnings.push('Missing regex');
+          if (ml <= 0) warnings.push('Missing maxlength');
+        }
+
         return {
           label:       getLabel(inp as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement),
           type,
@@ -112,10 +123,12 @@ export async function analyzeFormStructure(url: string): Promise<FormStructure> 
           placeholder: inp.placeholder ?? '',
           required:    !!inp.required,
           pattern:     inp.pattern || null,
+          maxlength,
           visible:     isVis(el),
           readonly:    inp.readOnly != null ? !!inp.readOnly : el.hasAttribute('readonly'),
           disabled:    !!inp.disabled,
           errors:      getErrors(el),
+          warnings,
           selector:    sel,
         };
       }
@@ -137,14 +150,33 @@ export async function analyzeFormStructure(url: string): Promise<FormStructure> 
           const e = document.getElementById(lb.split(' ')[0]);
           if (e?.textContent?.trim()) return e.textContent.trim();
         }
+        // Explicit title elements used by AEM / accordion / card patterns
+        const titleEl = c.querySelector(
+          ':scope > .guide-container-title,' +
+          ':scope > .panel-title,' +
+          ':scope > .section-title,' +
+          ':scope > .accordion-title,' +
+          ':scope > .card-title,' +
+          ':scope > .collapsible-title,' +
+          ':scope > [class*="title"]'
+        );
+        if (titleEl?.textContent?.trim()) return titleEl.textContent.trim();
         // Direct heading child
         const h = c.querySelector(':scope > h1,:scope > h2,:scope > h3,:scope > h4,:scope > h5,:scope > h6');
         if (h?.textContent?.trim()) return h.textContent.trim();
-        // Any heading descendant (accordion/card wrappers)
+        // Any heading descendant (accordion / card wrappers)
         const ah = c.querySelector('h1,h2,h3,h4,h5,h6');
         if (ah?.textContent?.trim()) return ah.textContent.trim().slice(0, 80);
-        const d = (c.getAttribute('data-label') ?? c.getAttribute('data-name') ?? c.getAttribute('data-title'))?.trim();
+        // data-name (AEM): convert camelCase → readable text
+        const dn = c.getAttribute('data-name');
+        if (dn?.trim()) {
+          return dn.replace(/([A-Z])/g, ' $1').replace(/[-_]+/g, ' ').trim();
+        }
+        const d = (c.getAttribute('data-label') ?? c.getAttribute('data-title'))?.trim();
         if (d) return d;
+        // title attribute as last resort
+        const t = (c as HTMLElement).title?.trim();
+        if (t) return t;
         return 'Section';
       }
 

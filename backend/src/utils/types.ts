@@ -160,10 +160,12 @@ export interface FormField {
   placeholder: string;
   required: boolean;
   pattern: string | null;
+  maxlength: number | null;    // character limit (null = not defined)
   visible: boolean;
   readonly: boolean;
   disabled: boolean;
-  errors: string[];      // English-only error/validation messages
+  errors: string[];            // English runtime error/validation messages
+  warnings: string[];          // QA quality gaps (missing regex, maxlength…)
   selector: string;
 }
 
