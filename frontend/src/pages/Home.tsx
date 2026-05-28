@@ -60,7 +60,10 @@ export default function Home() {
     setReport(null);
     setLogicReport(null);
     setAiReport(null);
-      setStructureReport(null);
+    setStructureReport(null);
+
+    try {
+      // Sprint 1 — always run field/regex/required tests
       const result = await runTest(url.trim(), options, dataMode);
       setReport(result);
 
